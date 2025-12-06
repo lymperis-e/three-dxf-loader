@@ -109,6 +109,7 @@ class DXFLoader extends THREE.Loader {
     this.enableLayer = false
     this.defaultColor = 0x000000
     this.enableUnitConversion = false
+    this.preserveCoordinates = false
   }
 
   setFont(font) {
@@ -128,6 +129,11 @@ class DXFLoader extends THREE.Loader {
 
   setConsumeUnits(enable) {
     this.enableUnitConversion = !!enable
+  }
+
+  setPreserveCoordinates(enable) {
+    this.preserveCoordinates = !!enable
+    return this
   }
 
   load(url, onLoad, onProgress, onError) {
@@ -182,7 +188,8 @@ class DXFLoader extends THREE.Loader {
    * @constructor
    */
   loadEntities(data, options = this) {
-    const { font, enableLayer, defaultColor, enableUnitConversion } = options || {}
+    const { font, enableLayer, defaultColor, enableUnitConversion, preserveCoordinates } =
+      options || {}
     /* Entity Type
             'POINT' | '3DFACE' | 'ARC' | 'ATTDEF' | 'CIRCLE' | 'DIMENSION' | 'MULTILEADER' | 'ELLIPSE' | 'INSERT' | 'LINE' | 
             'LWPOLYLINE' | 'MTEXT' | 'POLYLINE' | 'SOLID' | 'SPLINE' | 'TEXT' | 'VERTEX'
@@ -1038,6 +1045,13 @@ class DXFLoader extends THREE.Loader {
       const unitToMeter = getUnitToMeter(data.header?.['$INSUNITS'])
       const finalScale = scale * unitToMeter
       parent.scale.set(finalScale, finalScale, finalScale)
+    }
+
+    // Center the geometry to the origin unless preserveCoordinates is true
+    if (!preserveCoordinates) {
+      const bbox = new THREE.Box3().setFromObject(parent)
+      const center = bbox.getCenter(new THREE.Vector3())
+      parent.position.set(-center.x, -center.y, -center.z)
     }
 
     return {
