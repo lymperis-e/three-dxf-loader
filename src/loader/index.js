@@ -1048,6 +1048,7 @@ class DXFLoader extends THREE.Loader {
     }
 
     // Center the geometry to the origin unless preserveCoordinates is true
+    // Note: Bounding box computation may be expensive for large models
     if (!preserveCoordinates) {
       const bbox = new THREE.Box3().setFromObject(parent)
       const center = bbox.getCenter(new THREE.Vector3())
